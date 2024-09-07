@@ -1,0 +1,88 @@
+const { ethers, toBeArray } = require('ethers');
+const getTotalDepositedAmounts = require('./Reserve');
+const INRCpriceCalculator = require('../OraclePrice/INRCPrice');
+const MaticPrice = require('../OraclePrice/MaticPrice');
+const LINKPrice = require('../OraclePrice/LINKPrice');
+const oracleABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "getLatestPrice",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+const oracleAddress = "0x572BEB57EAB1aD11cBE4C79f5Fd0C8569Ab73086";
+const provider = new ethers.JsonRpcProvider('https://polygon-mainnet.g.alchemy.com/v2/ON1ctftr6l4I-udsVICw75aKx-JLPufd');
+const privateKey = '127676b648f696051c0d4d77cdcb1a0bace3fb9fbbcd5e46e42076e64d1b0f12'; // Your private key
+const wallet = new ethers.Wallet(privateKey, provider);
+const oracleContract = new ethers.Contract(oracleAddress, oracleABI, wallet);
+
+async function oracle() {
+    const pc = await oracleContract.getLatestPrice();
+    const pcNumber = Number(pc);
+    
+    // Scale the result up by 10^8 to avoid precision loss
+    const result = pcNumber / (10 ** 8);
+    
+    //console.log(result);
+    return result;
+}
+let INRCAmount;
+let MATICAmount;
+let LINKAmount;
+let RCOINAmount;
+let oracleP;
+async function TotalValue()
+{
+	const result = await getTotalDepositedAmounts();
+	INRCAmount = result.INRCAmount;
+    MATICAmount = result.MATICAmount;
+    LINKAmount = result.LINKAmount;
+    RCOINAmount = result.RCOINAmount;
+
+	const inrcP = await INRCpriceCalculator();
+	const maticP = await MaticPrice();
+	const linkP = await LINKPrice();
+
+	let totalINRCValue = INRCAmount * inrcP;
+	let totalMATICValue = MATICAmount * maticP;
+	let totalLINKValue = LINKAmount * linkP;
+
+	oracleP = await oracle();
+
+	totalINRCValue = totalINRCValue / oracleP;
+	totalMATICValue = totalMATICValue / oracleP;
+	totalLINKValue = totalLINKValue / oracleP;
+
+	let TVL = totalINRCValue + totalMATICValue + totalLINKValue;
+	//console.log(TVL);
+    // console.log(RCOINAmount);
+    return {
+        TVL,
+        INRCAmount,
+        MATICAmount,
+        LINKAmount,
+        RCOINAmount,
+		oracleP,
+		totalINRCValue,
+		totalMATICValue,
+		totalLINKValue
+    };
+
+}
+module.exports = {
+    TotalValue
+};
