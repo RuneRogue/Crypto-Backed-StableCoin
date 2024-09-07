@@ -23,7 +23,7 @@ const ReserveManagerManagerABI = require('./ABI/ReserveManagerABI.json');
 
 const RcoinAddress = "0xDD01448e9DF16595BDaD8af820aFd50A175E12F4";
 const provider = new ethers.JsonRpcProvider('https://polygon-mainnet.g.alchemy.com/v2/ON1ctftr6l4I-udsVICw75aKx-JLPufd');
-const privateKey = '127676b648f696051c0d4d77cdcb1a0bace3fb9fbbcd5e46e42076e64d1b0f12'; 
+const privateKey = '***************************'; 
 const wallet = new ethers.Wallet(privateKey, provider);
 const Rcoin = new ethers.Contract(RcoinAddress, RcoinABI, wallet);
 const ReserveManagerAddress = '0x463C4C3c9b223F9eb3453C033eb93Aed102bD8fB';
